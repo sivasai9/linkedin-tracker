@@ -3,6 +3,7 @@
 ## Deploy to Render (Free Tier)
 
 ### Step 1: Setup MongoDB Atlas (Free Cloud DB)
+
 1. Go to https://www.mongodb.com/atlas and create a free account
 2. Create a free cluster (M0 tier)
 3. Under "Database Access", create a user with password
@@ -11,6 +12,7 @@
    - It looks like: `mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/`
 
 ### Step 2: Push to GitHub
+
 ```bash
 cd linkedin-tracker
 git init
@@ -21,6 +23,7 @@ git push -u origin main
 ```
 
 ### Step 3: Deploy on Render
+
 1. Go to https://render.com and sign up (free with GitHub)
 2. Click "New" → "Web Service"
 3. Connect your GitHub repo
@@ -34,6 +37,7 @@ git push -u origin main
 6. Click "Create Web Service"
 
 ### Done!
+
 Your app will be live at `https://linkedin-job-tracker.onrender.com` (or similar URL).
 
 > **Note**: Render free tier spins down after 15 min of inactivity. First request after sleep takes ~30s to wake up.
