@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LinkedIn Job Tracker</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f3f2ef;
+        color: #333;
+        min-height: 100vh;
+      }
+      .header {
+        background: #0a66c2;
+        color: white;
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .header h1 {
+        font-size: 1.5rem;
+      }
+      .container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      .search-box {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+      }
+      .search-box h2 {
+        margin-bottom: 1rem;
+        color: #0a66c2;
+        font-size: 1.2rem;
+      }
+      .search-form {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .search-form input {
+        flex: 1;
+        min-width: 200px;
+        padding: 0.7rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+      }
+      .search-form input:focus {
+        outline: none;
+        border-color: #0a66c2;
+      }
+      .btn {
+        padding: 0.7rem 1.5rem;
+        background: #0a66c2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn:hover {
+        background: #004182;
+      }
+      .btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .btn-save {
+        background: #057642;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      .btn-save:hover {
+        background: #03512e;
+      }
+      .results {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      .results-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #eee;
+        font-weight: 600;
+        color: #666;
+      }
+      .job-card {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.15s;
+      }
+      .job-card:hover {
+        background: #f8f9fa;
+      }
+      .job-card:last-child {
+        border-bottom: none;
+      }
+      .job-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #0a66c2;
+        margin-bottom: 0.3rem;
+      }
+      .job-title a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .job-title a:hover {
+        text-decoration: underline;
+      }
+      .job-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .job-actions {
+        margin-top: 0.5rem;
+      }
+      .loading {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+      }
+      .spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid #ddd;
+        border-top-color: #0a66c2;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .no-results {
+        padding: 2rem;
+        text-align: center;
+        color: #888;
+      }
+      .toast {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        background: #057642;
+        color: white;
+        padding: 0.8rem 1.2rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast.error {
+        background: #cc1016;
+      }
+      .load-more {
+        text-align: center;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🔍 LinkedIn Job Tracker</h1>
+    </div>
+
+    <div class="container">
+      <div class="search-box">
+        <h2>Search Latest Jobs from LinkedIn</h2>
+        <form class="search-form" id="searchForm">
+          <input
+            type="text"
+            id="companyInput"
+            placeholder="Company (optional)"
+          />
+          <input
+            type="text"
+            id="roleInput"
+            placeholder="Job role (e.g. Python Developer, Data Engineer)"
+            required
+          />
+          <input
+            type="text"
+            id="locationInput"
+            placeholder="Location (optional)"
+          />
+          <button type="submit" class="btn" id="searchBtn">Search Jobs</button>
+        </form>
+      </div>
+
+      <div class="results" id="resultsContainer" style="display: none">
+        <div class="results-header" id="resultsHeader"></div>
+        <div id="jobsList"></div>
+        <div class="load-more" id="loadMore" style="display: none">
+          <button class="btn" id="loadMoreBtn">Load More</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      let currentPage = 0;
+      let currentRole = "";
+      let currentLocation = "";
+      let currentCompany = "";
+
+      const searchForm = document.getElementById("searchForm");
+      const searchBtn = document.getElementById("searchBtn");
+      const companyInput = document.getElementById("companyInput");
+      const roleInput = document.getElementById("roleInput");
+      const locationInput = document.getElementById("locationInput");
+      const resultsContainer = document.getElementById("resultsContainer");
+      const resultsHeader = document.getElementById("resultsHeader");
+      const jobsList = document.getElementById("jobsList");
+      const loadMore = document.getElementById("loadMore");
+      const loadMoreBtn = document.getElementById("loadMoreBtn");
+
+      searchForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        currentCompany = companyInput.value.trim();
+        currentRole = roleInput.value.trim();
+        currentLocation = locationInput.value.trim();
+        currentPage = 0;
+        jobsList.innerHTML = "";
+        await fetchJobs();
+      });
+
+      loadMoreBtn.addEventListener("click", async () => {
+        currentPage++;
+        await fetchJobs(true);
+      });
+
+      async function fetchJobs(append = false) {
+        searchBtn.disabled = true;
+        loadMoreBtn.disabled = true;
+
+        if (!append) {
+          jobsList.innerHTML =
+            '<div class="loading"><div class="spinner"></div><p style="margin-top:0.5rem">Searching LinkedIn...</p></div>';
+          resultsContainer.style.display = "block";
+        } else {
+          loadMoreBtn.textContent = "Loading...";
+        }
+
+        try {
+          const searchRole = currentCompany
+            ? `${currentRole} ${currentCompany}`
+            : currentRole;
+          const res = await fetch("/scraper/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              role: searchRole,
+              location: currentLocation,
+              page: currentPage,
+            }),
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Search failed");
+          }
+
+          const jobs = await res.json();
+
+          if (!append) {
+            jobsList.innerHTML = "";
+          }
+
+          if (jobs.length === 0 && !append) {
+            jobsList.innerHTML =
+              '<div class="no-results">No jobs found. Try a different search term.</div>';
+            loadMore.style.display = "none";
+          } else {
+            jobs.forEach((job) => {
+              jobsList.appendChild(createJobCard(job));
+            });
+            resultsHeader.textContent = `Jobs for "${currentRole}"${currentCompany ? " at " + currentCompany : ""}${currentLocation ? " in " + currentLocation : ""}`;
+            loadMore.style.display = jobs.length >= 10 ? "block" : "none";
+          }
+        } catch (err) {
+          if (!append) {
+            jobsList.innerHTML = `<div class="no-results" style="color:#cc1016">${err.message}</div>`;
+          } else {
+            showToast(err.message, true);
+          }
+        } finally {
+          searchBtn.disabled = false;
+          loadMoreBtn.disabled = false;
+          loadMoreBtn.textContent = "Load More";
+        }
+      }
+
+      function createJobCard(job) {
+        const card = document.createElement("div");
+        card.className = "job-card";
+        card.innerHTML = `
+                <div class="job-title">
+                    ${job.linkedin_url ? `<a href="${escapeHtml(job.linkedin_url)}" target="_blank">${escapeHtml(job.job_title)}</a>` : escapeHtml(job.job_title)}
+                </div>
+                <div class="job-meta">
+                    ${job.company ? `<span>🏢 ${escapeHtml(job.company)}</span>` : ""}
+                    ${job.location ? `<span>📍 ${escapeHtml(job.location)}</span>` : ""}
+                    ${job.posted_date ? `<span>📅 ${job.posted_date}</span>` : ""}
+                </div>
+            `;
+        return card;
+      }
+
+      async function saveJob(url) {
+        try {
+          const res = await fetch("/scraper/extract-and-save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ linkedin_url: url }),
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Save failed");
+          }
+
+          showToast("Job saved to tracker!");
+        } catch (err) {
+          showToast(err.message, true);
+        }
+      }
+
+      function showToast(message, isError = false) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.className = "toast show" + (isError ? " error" : "");
+        setTimeout(() => {
+          toast.className = "toast";
+        }, 3000);
+      }
+
+      function escapeHtml(text) {
+        if (!text) return "";
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    </script>
+  </body>
+</html>
