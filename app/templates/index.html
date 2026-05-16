@@ -269,14 +269,12 @@
         }
 
         try {
-          const searchRole = currentCompany
-            ? `${currentRole} ${currentCompany}`
-            : currentRole;
           const res = await fetch("/scraper/search", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              role: searchRole,
+              role: currentRole,
+              company: currentCompany,
               location: currentLocation,
               page: currentPage,
             }),

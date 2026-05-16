@@ -4,6 +4,7 @@ from typing import Optional
 
 class JobSearchRequest(BaseModel):
     role: str
+    company: Optional[str] = ""
     location: Optional[str] = ""
     page: int = 0
 

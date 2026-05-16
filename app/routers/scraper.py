@@ -11,6 +11,7 @@ async def search_jobs(request: JobSearchRequest):
     try:
         results = await search_linkedin_jobs(
             role=request.role,
+            company=request.company or "",
             location=request.location or "",
             page=request.page,
         )

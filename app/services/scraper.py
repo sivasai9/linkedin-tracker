@@ -5,12 +5,14 @@ import re
 from urllib.parse import quote_plus
 
 
-async def search_linkedin_jobs(role: str, location: str = "", page: int = 0) -> list[JobSearchResult]:
+async def search_linkedin_jobs(role: str, company: str = "", location: str = "", page: int = 0) -> list[JobSearchResult]:
     """
     Search LinkedIn public job listings by role/keyword.
     Uses LinkedIn's public job search page (no login required).
+    If company is provided, it's included in the keywords and results are filtered to match.
     """
-    keywords = quote_plus(role)
+    search_terms = f"{role} {company}".strip() if company else role
+    keywords = quote_plus(search_terms)
     location_param = quote_plus(location) if location else ""
     start = page * 25
 
@@ -63,5 +65,13 @@ async def search_linkedin_jobs(role: str, location: str = "", page: int = 0) -> 
                 ))
         except Exception:
             continue
+
+    # Filter by company if specified
+    if company:
+        company_lower = company.lower()
+        results = [
+            r for r in results
+            if r.company and company_lower in r.company.lower()
+        ]
 
     return results
