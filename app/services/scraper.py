@@ -50,7 +50,7 @@ async def search_linkedin_jobs(role: str, company: str = "", location: str = "",
                 continue
 
             job_title = title_el.get_text(strip=True) if title_el else None
-            company = company_el.get_text(strip=True) if company_el else None
+            job_company = company_el.get_text(strip=True) if company_el else None
             job_location = location_el.get_text(strip=True) if location_el else None
             posted_date = date_el.get("datetime") if date_el else None
             job_url = link_el.get("href") if link_el else None
@@ -58,7 +58,7 @@ async def search_linkedin_jobs(role: str, company: str = "", location: str = "",
             if job_title:
                 results.append(JobSearchResult(
                     job_title=job_title,
-                    company=company,
+                    company=job_company,
                     location=job_location,
                     posted_date=posted_date,
                     linkedin_url=job_url,
@@ -66,7 +66,7 @@ async def search_linkedin_jobs(role: str, company: str = "", location: str = "",
         except Exception:
             continue
 
-    # Filter by company if specified
+    # Filter by company if the caller specified one
     if company:
         company_lower = company.lower()
         results = [
